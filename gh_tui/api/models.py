@@ -46,3 +46,21 @@ class ContentFile:
     size: int
     html_url: str
     is_binary: bool = False
+
+
+@dataclass(frozen=True)
+class UserProfile:
+    login: str
+    name: str | None
+    bio: str | None
+    company: str | None
+    location: str | None
+    blog: str | None
+    twitter_username: str | None
+    public_repos: int
+    followers: int
+    following: int
+    html_url: str
+    avatar_url: str
+    type: str
+    created_at: str

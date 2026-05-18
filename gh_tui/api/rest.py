@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import binascii
 
-from gh_tui.api.models import ContentFile, Repository, SearchResult, TreeEntry
+from gh_tui.api.models import ContentFile, Repository, SearchResult, TreeEntry, UserProfile
 
 BINARY_EXTENSIONS = {
   ".png",
@@ -67,6 +67,51 @@ def parse_search_results(data: dict) -> list[SearchResult]:
     for item in items
   ]
 
+
+def parse_user(data: dict) -> UserProfile:
+  login = data.get("login")
+  name = data.get("name")
+  bio = data.get("bio")
+  company = data.get("company")
+  location = data.get("location")
+  blog = data.get("blog")
+  twitter_username = data.get("twitter_username")
+  public_repos = int(data.get("public_repos", 0))
+  followers = int(data.get("followers", 0))
+  following = int(data.get("following", 0))
+  html_url = data.get("html_url")
+  avatar_url = data.get("avatar_url")
+  type_ = data.get("type")
+  created_at = data.get("created_at")
+  return UserProfile(
+    login=login,
+    name=name,
+    bio=bio,
+    company=company,
+    location=location,
+    blog=blog,
+    twitter_username=twitter_username,
+    public_repos=public_repos,
+    followers=followers,
+    following=following,
+    html_url=html_url,
+    avatar_url=avatar_url,
+    type=type_,
+    created_at=created_at,
+  )
+
+
+def parse_user_repo_list(data: list) -> list[SearchResult]:
+  results: list[SearchResult] = []
+  for repo in data:
+    full_name = repo.get("full_name")
+    description = repo.get("description")
+    stars = int(repo.get("stargazers_count", 0))
+    language = repo.get("language")
+    html_url = repo.get("html_url")
+    results.append(SearchResult(full_name=full_name, description=description, stars=stars, language=language, html_url=html_url))
+  results.sort(key=lambda r: r.stars, reverse=True)
+  return results
 
 def parse_contents(data: dict | list) -> list[TreeEntry]:
   if isinstance(data, dict):

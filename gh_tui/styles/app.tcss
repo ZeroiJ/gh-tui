@@ -224,3 +224,43 @@ MarkdownStrongEmphasis {
     color: #e0e0e0;
     text-style: bold;
 }
+
+/* ── Profile screen ─────────────────────── */
+ProfileScreen {
+    layout: vertical;
+}
+
+#profile-layout {
+    height: 1fr;
+    background: #141414;
+}
+
+#repo-list {
+    width: 1fr;
+    min-width: 30;
+    height: 100%;
+    border: none;
+    border-right: solid #2a2a2a;
+    background: #141414;
+    padding: 1 2;
+}
+
+#repo-list:focus {
+    border-right: solid #d4a373;
+    background: #181818;
+}
+
+#profile-info {
+    width: 28;
+    min-width: 24;
+    height: 100%;
+    border: none;
+    border-left: solid #2a2a2a;
+    background: #161616;
+    padding: 1 2;
+}
+
+#profile-info:focus {
+    border-left: solid #d4a373;
+    background: #181818;
+}

@@ -32,6 +32,7 @@ class RepoScreen(Screen):
     ("r", "refresh", "Refresh"),
     ("slash", "search", "Search"),
     ("tab", "cycle_focus", "Next panel"),
+    ("u", "open_profile", "Profile"),
   ]
 
   def __init__(
@@ -226,6 +227,19 @@ class RepoScreen(Screen):
       visible[(idx + 1) % len(visible)].focus()
     except ValueError:
       visible[0].focus()
+
+  def action_open_profile(self) -> None:
+    if not self._repo_name:
+      return
+    owner = self._repo_name.split("/")[0]
+
+    def on_result(full_name: str | None) -> None:
+      if full_name:
+        self.load_repo(full_name)
+
+    from gh_tui.screens.profile import ProfileScreen
+
+    self.app.push_screen(ProfileScreen(self._client, owner), on_result)
 
   def _show_loading(self, message: str) -> None:
     self.query_one("#banner", Static).update(message)

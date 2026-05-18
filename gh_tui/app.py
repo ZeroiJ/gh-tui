@@ -8,6 +8,7 @@ from textual.app import App
 from gh_tui.api.client import GitHubClient
 from gh_tui.config import CONFIG_FILE, AppConfig
 from gh_tui.screens.auth import AuthScreen
+from gh_tui.screens.profile import ProfileScreen
 from gh_tui.screens.repo import RepoScreen
 from gh_tui.screens.search import SearchScreen
 
@@ -28,18 +29,32 @@ class GhTuiApp(App):
     self,
     config: AppConfig | None = None,
     initial_repo: str | None = None,
+    initial_user: str | None = None,
   ) -> None:
     super().__init__()
     self.config = config or AppConfig.load()
     self._initial_repo = initial_repo or self.config.default_repo
+    self._initial_user = initial_user
     self.client = GitHubClient(
       token=self.config.github_token,
       ttl_seconds=self.config.cache_ttl_seconds,
     )
 
   def on_mount(self) -> None:
-    self._repo_screen = RepoScreen(self.client, repo_name=self._initial_repo)
-    self.push_screen(self._repo_screen)
+    if self._initial_user:
+      self._profile_screen = ProfileScreen(self.client, self._initial_user)
+
+      def on_profile_result(full_name: str | None) -> None:
+        if full_name:
+          self._repo_screen = RepoScreen(self.client, repo_name=full_name)
+          self.push_screen(self._repo_screen)
+        else:
+          self.quit()
+
+      self.push_screen(self._profile_screen, on_profile_result)
+    else:
+      self._repo_screen = RepoScreen(self.client, repo_name=self._initial_repo)
+      self.push_screen(self._repo_screen)
     if not CONFIG_FILE.exists():
       self._prompt_auth()
     else:

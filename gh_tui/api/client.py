@@ -5,7 +5,7 @@ from dataclasses import dataclass
 import httpx
 
 from gh_tui.api import rest
-from gh_tui.api.models import ContentFile, Repository, SearchResult, TreeEntry
+from gh_tui.api.models import ContentFile, Repository, SearchResult, UserProfile, TreeEntry
 from gh_tui.cache.store import CacheStore
 
 
@@ -124,6 +124,24 @@ class GitHubClient:
       cache_key=f"search:{query}",
     )
     return rest.parse_search_results(data)
+
+  async def get_user(self, login: str, *, refresh: bool = False) -> UserProfile:
+    data = await self._request(
+      "GET",
+      f"/users/{login}",
+      cache_key=f"user:{login}",
+      use_cache=not refresh,
+    )
+    return rest.parse_user(data)
+
+  async def get_user_repos(self, login: str, *, refresh: bool = False) -> list[SearchResult]:
+    data = await self._request(
+      "GET",
+      f"/users/{login}/repos?sort=updated&per_page=30",
+      cache_key=f"user_repos:{login}",
+      use_cache=not refresh,
+    )
+    return rest.parse_user_repo_list(data)
 
   async def get_repo(self, full_name: str, *, refresh: bool = False) -> Repository:
     if refresh:
