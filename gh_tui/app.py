@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from textual.app import App, ComposeResult
+from textual import work
+from textual.app import App
 
 from gh_tui.api.client import GitHubClient
 from gh_tui.config import CONFIG_FILE, AppConfig
@@ -36,22 +37,28 @@ class GhTuiApp(App):
       ttl_seconds=self.config.cache_ttl_seconds,
     )
 
-  def compose(self) -> ComposeResult:
-    yield RepoScreen(self.client, repo_name=self._initial_repo)
-
-  async def on_mount(self) -> None:
+  def on_mount(self) -> None:
+    self._repo_screen = RepoScreen(self.client, repo_name=self._initial_repo)
+    self.push_screen(self._repo_screen)
     if not CONFIG_FILE.exists():
-      result = await self.push_screen_wait(AuthScreen())
-      if result:
-        self.config = AppConfig.load()
-        self.client = GitHubClient(
-          token=self.config.github_token,
-          ttl_seconds=self.config.cache_ttl_seconds,
-        )
-        screen = self.screen
-        if isinstance(screen, RepoScreen):
-          screen._client = self.client
+      self._prompt_auth()
+    else:
+      self._maybe_notify_public_mode()
 
+  @work
+  async def _prompt_auth(self) -> None:
+    result = await self.push_screen_wait(AuthScreen())
+    if result:
+      self.config = AppConfig.load()
+      self.client = GitHubClient(
+        token=self.config.github_token,
+        ttl_seconds=self.config.cache_ttl_seconds,
+      )
+    self._repo_screen._client = self.client
+    self._repo_screen.after_auth()
+    self._maybe_notify_public_mode()
+
+  def _maybe_notify_public_mode(self) -> None:
     if not self.config.is_authenticated:
       self.notify(
         "Public-only mode — add a token in ~/.config/gh-tui/config.toml for private repos",
@@ -61,11 +68,7 @@ class GhTuiApp(App):
   def push_search(self) -> None:
     def on_result(full_name: str | None) -> None:
       if full_name:
-        screen = self.screen
-        if isinstance(screen, RepoScreen):
-          screen.load_repo(full_name)
-        else:
-          self.switch_screen(RepoScreen(self.client, repo_name=full_name))
+        self._repo_screen.load_repo(full_name)
 
     self.push_screen(SearchScreen(self.client), on_result)
 

@@ -57,7 +57,8 @@ class AuthScreen(ModalScreen[bool]):
     config = AppConfig.load()
     config.github_token = token or None
     config.save()
-    self.dismiss(True)
+    # Empty save = same as skip (public-only)
+    self.dismiss(bool(token))
 
   @on(Button.Pressed, "#auth-skip")
   def on_skip(self) -> None:

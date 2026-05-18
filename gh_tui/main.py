@@ -4,11 +4,12 @@ import sys
 
 from gh_tui.app import GhTuiApp
 from gh_tui.config import AppConfig
+from gh_tui.utils.repo_name import parse_repo_arg
 
 
 def main() -> None:
   args = sys.argv[1:]
-  initial_repo = args[0] if args else None
+  initial_repo = parse_repo_arg(args)
   config = AppConfig.load()
   if initial_repo:
     config.default_repo = initial_repo

@@ -26,7 +26,7 @@ class AppConfig(BaseSettings):
     if CONFIG_FILE.exists():
       return cls._from_toml(CONFIG_FILE)
     token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
-    return cls(github_token=token)
+    return cls(token=token)
 
   @classmethod
   def _from_toml(cls, path: Path) -> AppConfig:
@@ -37,7 +37,7 @@ class AppConfig(BaseSettings):
     github = data.get("github", {})
     cache = data.get("cache", {})
     return cls(
-      github_token=github.get("token"),
+      token=github.get("token"),
       cache_ttl_seconds=cache.get("ttl_seconds", 600),
       default_repo=data.get("default_repo"),
     )

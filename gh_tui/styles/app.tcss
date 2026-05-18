@@ -1,37 +1,226 @@
-Screen {
-  layout: vertical;
+/* gh-tui ASCII-clean aesthetic */
+/* Palette: dark charcoal bg, warm amber accent, soft gray text */
+
+RepoScreen {
+    layout: vertical;
 }
 
+/* ── Header ───────────────────────────── */
+#header {
+    height: 1;
+    padding: 0 2;
+    background: #1a1a1a;
+    color: #a0a0a0;
+    content-align: left middle;
+}
+
+/* ── Banner / Status line ─────────────── */
 #banner {
-  height: 1;
-  padding: 0 1;
-  background: $surface-darken-1;
+    height: 1;
+    padding: 0 2;
+    background: #1a1a1a;
+    color: #d4a373;
+    content-align: left middle;
+    border-bottom: solid #2a2a2a;
 }
 
+/* ── Main layout ──────────────────────── */
 #main-layout {
-  height: 1fr;
+    height: 1fr;
+    background: #141414;
 }
 
+/* ── File tree sidebar ────────────────── */
 #file-tree {
-  dock: left;
-  width: 28;
+    width: 28;
+    min-width: 22;
+    height: 100%;
+    border: none;
+    border-right: solid #2a2a2a;
+    background: #161616;
+    padding: 0 1;
 }
 
+#file-tree:focus {
+    border-right: solid #d4a373;
+    background: #181818;
+}
+
+/* ── Content panels ───────────────────── */
 #markdown-view {
-  width: 2fr;
+    width: 1fr;
+    min-width: 30;
+    height: 100%;
+    border: none;
+    background: #141414;
+    padding: 1 2;
+}
+
+#markdown-view:focus {
+    background: #181818;
 }
 
 #code-view {
-  width: 2fr;
+    width: 1fr;
+    min-width: 30;
+    height: 100%;
+    border: none;
+    background: #141414;
+    padding: 1 2;
 }
 
+#code-view:focus {
+    background: #181818;
+}
+
+/* ── Info panel ───────────────────────── */
 #info-panel {
-  dock: right;
-  width: 30;
+    width: 28;
+    min-width: 24;
+    height: 100%;
+    border: none;
+    border-left: solid #2a2a2a;
+    background: #161616;
+    padding: 1 2;
 }
 
-#markdown-view:focus,
-#code-view:focus,
-#file-tree:focus {
-  border: tall $accent;
+#info-panel:focus {
+    border-left: solid #d4a373;
+    background: #181818;
+}
+
+/* ── Status bar ────────────────────────── */
+#status-bar {
+    height: 1;
+    background: #1a1a1a;
+    color: #707070;
+    padding: 0 2;
+    border-top: solid #2a2a2a;
+    content-align: left middle;
+}
+
+/* ── Search modal ─────────────────────── */
+SearchScreen {
+    align: center middle;
+}
+
+#search-dialog {
+    width: 70;
+    max-width: 90%;
+    height: auto;
+    max-height: 80%;
+    border: solid #3a3a3a;
+    background: #1a1a1a;
+    padding: 1 2;
+}
+
+#search-input {
+    margin-bottom: 1;
+    border: solid #3a3a3a;
+    background: #141414;
+}
+
+#search-results {
+    height: 16;
+    max-height: 50vh;
+    border: none;
+    border-top: solid #2a2a2a;
+    background: #141414;
+}
+
+#search-hint {
+    color: #606060;
+    height: 1;
+}
+
+/* ── Auth modal ───────────────────────── */
+AuthScreen {
+    align: center middle;
+}
+
+#auth-dialog {
+    width: 60;
+    max-width: 90%;
+    border: solid #3a3a3a;
+    background: #1a1a1a;
+    padding: 1 2;
+}
+
+#auth-input {
+    margin: 1 0;
+    border: solid #3a3a3a;
+    background: #141414;
+}
+
+.auth-buttons {
+    height: auto;
+    layout: horizontal;
+    align: right middle;
+}
+
+/* ── Scrollbars ────────────────────────── */
+* {
+    scrollbar-background: #1a1a1a;
+    scrollbar-color: #3a3a3a;
+    scrollbar-color-active: #d4a373;
+    scrollbar-size: 1 1;
+}
+
+/* ── Markdown overrides ───────────────── */
+Markdown {
+    background: transparent;
+}
+
+MarkdownH1 {
+    color: #e0e0e0;
+    text-style: bold;
+    border-bottom: solid #2a2a2a;
+}
+
+MarkdownH2 {
+    color: #c0c0c0;
+    text-style: bold;
+}
+
+MarkdownH3, MarkdownH4, MarkdownH5, MarkdownH6 {
+    color: #a0a0a0;
+    text-style: bold;
+}
+
+MarkdownBlockQuote {
+    color: #909090;
+    border-left: outer #d4a373;
+}
+
+MarkdownCodeBlock {
+    background: #1a1a1a;
+    border: solid #2a2a2a;
+}
+
+MarkdownTable {
+    border: solid #2a2a2a;
+}
+
+MarkdownTableHeader {
+    background: #1a1a1a;
+    text-style: bold;
+}
+
+MarkdownHorizontalRule {
+    color: #2a2a2a;
+}
+
+MarkdownLink {
+    color: #d4a373;
+    text-style: underline;
+}
+
+MarkdownEmphasis {
+    color: #b0b0b0;
+    text-style: italic;
+}
+
+MarkdownStrongEmphasis {
+    color: #e0e0e0;
+    text-style: bold;
 }

@@ -50,6 +50,10 @@ class RepoScreen(Screen):
     self._stale = False
 
   def compose(self) -> ComposeResult:
+    yield Static(
+      "[bold]gh-tui[/bold]  ·  [dim]/[/dim] search  [dim]q[/dim] quit",
+      id="header",
+    )
     yield Static("", id="banner")
     with Horizontal(id="main-layout"):
       yield FileTree("Files", id="file-tree")
@@ -60,17 +64,43 @@ class RepoScreen(Screen):
 
   def on_mount(self) -> None:
     self.query_one("#code-view", CodeView).display = False
+
+  def on_ready(self) -> None:
     if self._repo_name:
       self.load_repo(self._repo_name)
     else:
-      self.query_one("#info-panel", InfoPanel).show_placeholder()
-      self.query_one("#markdown-view", MarkdownView).show_message(
-        "[dim]Press [bold]/[/bold] to search for a repository[/dim]"
-      )
-      self._update_status(message="Press / to search")
+      self._show_welcome()
+    self.query_one("#file-tree", FileTree).focus()
+
+  def after_auth(self) -> None:
+    """Restore UI after the auth modal closes."""
+    if not self._repo_name:
+      self._show_welcome()
+    self.query_one("#file-tree", FileTree).focus()
+
+  def _show_welcome(self) -> None:
+    self.query_one("#code-view", CodeView).display = False
+    self.query_one("#markdown-view", MarkdownView).display = True
+    self.query_one("#info-panel", InfoPanel).show_placeholder()
+    self.query_one("#markdown-view", MarkdownView).show_message(
+      "[bold #d4a373]██████╗ ██╗  ██╗     ████████╗██╗   ██╗██╗[/bold #d4a373]\n"
+      "[bold #d4a373]██╔════╝ ██║  ██║     ╚══██╔══╝██║   ██║██║[/bold #d4a373]\n"
+      "[bold #d4a373]██║  ███╗███████║        ██║   ██║   ██║██║[/bold #d4a373]\n"
+      "[bold #d4a373]██║   ██║██╔══██║        ██║   ██║   ██║██║[/bold #d4a373]\n"
+      "[bold #d4a373]╚██████╔╝██║  ██║        ██║   ╚██████╔╝██║[/bold #d4a373]\n"
+      "[bold #d4a373]╚═════╝ ╚═╝  ╚═╝        ╚═╝    ╚═════╝ ╚═╝[/bold #d4a373]\n\n"
+      "[bold]Welcome to gh-tui[/bold]\n\n"
+      "Press [bold]/[/bold] then type e.g. [bold]textualize/rich[/bold]\n"
+      "or run: [bold]gh-tui textualize/rich[/bold]\n\n"
+      "[dim]Do not include 'gh-tui' in the search box.[/dim]"
+    )
+    self._update_status(message="Press / to search")
 
   @work(exclusive=True)
   async def load_repo(self, full_name: str, *, refresh: bool = False) -> None:
+    from gh_tui.utils.repo_name import normalize_repo_query
+
+    full_name = normalize_repo_query(full_name)
     self._repo_name = full_name
     self._show_loading(f"Loading {full_name}…")
     try:
@@ -80,6 +110,9 @@ class RepoScreen(Screen):
     except GitHubAPIError as exc:
       self._show_error(str(exc), exc.status_code)
       return
+    except Exception as exc:
+      self._show_error(f"Failed to load repo: {exc}", None)
+      return
 
     self._stale = self._client.last_response_stale
     self._browser_url = self._repo.html_url
@@ -88,6 +121,7 @@ class RepoScreen(Screen):
     self._show_readme_view(readme)
     self._mode = ViewMode.README
     self._current_path = None
+    self.query_one("#banner", Static).update(full_name)
     self._update_status()
 
   @on(FileTree.EntrySelected)
@@ -194,7 +228,10 @@ class RepoScreen(Screen):
       visible[0].focus()
 
   def _show_loading(self, message: str) -> None:
-    self.query_one("#banner", Static).update(f"[cyan]{message}[/cyan]")
+    self.query_one("#banner", Static).update(message)
+    self.query_one("#markdown-view", MarkdownView).display = True
+    self.query_one("#code-view", CodeView).display = False
+    self.query_one("#markdown-view", MarkdownView).show_message(message)
     self._update_status(message=message)
 
   def _show_error(self, message: str, status_code: int | None) -> None:

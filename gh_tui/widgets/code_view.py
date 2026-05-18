@@ -5,20 +5,20 @@ from pygments.formatters import Terminal256Formatter
 from pygments.lexers import get_lexer_by_name, guess_lexer_for_filename
 from pygments.util import ClassNotFound
 from rich.text import Text
-from textual.app import ComposeResult
+from textual.containers import VerticalScroll
 from textual.widgets import Static
 
 
-class CodeView(Static):
+class CodeView(VerticalScroll):
   """Syntax-highlighted file viewer."""
 
   DEFAULT_CSS = """
   CodeView {
     width: 1fr;
-    min-width: 30;
+    min-width: 24;
+    height: 100%;
     border: solid $primary-background;
     padding: 1 2;
-    overflow-y: auto;
   }
   """
 
@@ -31,24 +31,17 @@ class CodeView(Static):
     is_binary: bool = False,
   ) -> None:
     self.remove_children()
-    header = Static(f"[bold]{path}[/bold]\n")
-    header.can_focus = False
-    self.mount(header)
+    self.mount(Static(f"[bold]{path}[/bold]\n"))
 
     if is_binary:
       self.mount(
-        Static(
-          "[dim]Binary file — open in browser with [bold]b[/bold][/dim]"
-        )
+        Static("[dim]Binary file — open in browser with [bold]b[/bold][/dim]")
       )
       return
 
     if len(content) > 500_000:
       content = content[:500_000] + "\n\n… [truncated — file too large]"
-    highlighted = self._highlight(path, content, language)
-    body = Static(highlighted)
-    body.can_focus = False
-    self.mount(body)
+    self.mount(Static(self._highlight(path, content, language)))
 
   def show_message(self, message: str) -> None:
     self.remove_children()

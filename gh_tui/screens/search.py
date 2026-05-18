@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical
@@ -8,6 +10,9 @@ from textual.widgets import Input, ListItem, ListView, Static
 
 from gh_tui.api.client import GitHubAPIError, GitHubClient
 from gh_tui.api.models import SearchResult
+from gh_tui.utils.repo_name import looks_like_repo_name, normalize_repo_query
+
+SEARCH_DEBOUNCE_SECONDS = 0.4
 
 
 class SearchScreen(ModalScreen[str | None]):
@@ -26,8 +31,8 @@ class SearchScreen(ModalScreen[str | None]):
     max-width: 90%;
     height: auto;
     max-height: 80%;
-    border: thick $accent;
-    background: $surface;
+    border: solid #3a3a3a;
+    background: #1a1a1a;
     padding: 1 2;
   }
   #search-input {
@@ -36,7 +41,9 @@ class SearchScreen(ModalScreen[str | None]):
   #search-results {
     height: 16;
     max-height: 50vh;
-    border: solid $primary-background;
+    border: none;
+    border-top: solid #2a2a2a;
+    background: #141414;
   }
   """
 
@@ -44,6 +51,7 @@ class SearchScreen(ModalScreen[str | None]):
     super().__init__()
     self._client = client
     self._results: list[SearchResult] = []
+    self._search_query: str | None = None
 
   def compose(self) -> ComposeResult:
     with Vertical(id="search-dialog"):
@@ -61,11 +69,28 @@ class SearchScreen(ModalScreen[str | None]):
     if len(query) < 2:
       self._clear_results()
       return
-    self._search(query)
+    self._search_query = query
+    self._do_search()
+
+  def _do_search(self) -> None:
+    self.run_worker(self._debounced_search(), exclusive=True)
+
+  async def _debounced_search(self) -> None:
+    await asyncio.sleep(SEARCH_DEBOUNCE_SECONDS)
+    query = self._search_query
+    if query and self.is_mounted:
+      await self._search(query)
 
   @work(exclusive=True)
   async def _search(self, query: str) -> None:
+    query = normalize_repo_query(query)
     hint = self.query_one("#search-hint", Static)
+
+    if looks_like_repo_name(query):
+      hint.update(f"[dim]Opening {query}…[/dim]")
+      self.dismiss(query)
+      return
+
     hint.update("[dim]Searching…[/dim]")
     try:
       self._results = await self._client.search_repos(query)
@@ -85,7 +110,9 @@ class SearchScreen(ModalScreen[str | None]):
       label = f"[bold]{item.full_name}[/bold]  ★ {item.stars}"
       if desc:
         label += f"\n[dim]{desc}[/dim]"
-      list_view.append(ListItem(Static(label), id=item.full_name))
+      row = ListItem(Static(label))
+      row.data = {"full_name": item.full_name}
+      list_view.append(row)
 
   def _clear_results(self) -> None:
     self.query_one("#search-results", ListView).clear()
@@ -96,7 +123,10 @@ class SearchScreen(ModalScreen[str | None]):
     item = event.item
     if item is None:
       return
-    self.dismiss(item.id)
+    data = getattr(item, "data", None) or {}
+    full_name = data.get("full_name")
+    if full_name:
+      self.dismiss(full_name)
 
   def action_dismiss(self) -> None:
     self.dismiss(None)
