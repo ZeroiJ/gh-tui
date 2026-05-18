@@ -4,6 +4,14 @@ A keyboard-driven GitHub **repository browser** for the terminal. Browse file tr
 
 Built with [Textual](https://textual.textualize.io/) and the GitHub REST API.
 
+![gh-tui screenshot](https://raw.githubusercontent.com/ZeroiJ/gh-tui/main/assets/screenshot.png)
+
+## Screenshot
+
+![gh-tui in action](assets/screenshot.png)
+
+*Search results for `zed-ide/zed` — file tree, README markdown, and stats panel.*
+
 ## Features (Phase 1)
 
 - Search public (and private) repositories
