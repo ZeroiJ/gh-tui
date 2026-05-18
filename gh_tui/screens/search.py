@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from textual import on, work
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.screen import ModalScreen
@@ -81,7 +81,6 @@ class SearchScreen(ModalScreen[str | None]):
     if query and self.is_mounted:
       await self._search(query)
 
-  @work(exclusive=True)
   async def _search(self, query: str) -> None:
     query = normalize_repo_query(query)
     hint = self.query_one("#search-hint", Static)
